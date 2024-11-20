@@ -17,32 +17,38 @@ export default function LoginScreen() {
       Alert.alert('Error', 'Please enter your email and password.');
       return;
     }
-
+  
     setLoading(true);
     try {
       await signIn.create({
         identifier: email,
         password: password,
       });
-      navigation.navigate('Home');
+      navigation.replace('Home');
     } catch (error) {
       Alert.alert('Login failed', 'Please check your credentials and try again.');
     } finally {
       setLoading(false);
     }
   };
+  
 
   const handleGoogleLogin = async () => {
     try {
-      const redirectUrl = 'https://auth.expo.io/@keithhyper/lelangin'
-      await signIn.authenticateWithRedirect({
+      const redirectUrl = 'https://auth.expo.io/@keithhyper/lelangin';
+      const result = await signIn.authenticateWithRedirect({
         strategy: 'oauth_google',
         redirectUrl,
       });
+  
+      if (result.status === 'complete') {
+        navigation.replace('Home');
+      }
     } catch (error) {
       Alert.alert('Google Login Failed', 'Please try again later.');
     }
   };
+  
 
   return (
     <View style={{ flex: 1, backgroundColor: themeColors.bg }}>
