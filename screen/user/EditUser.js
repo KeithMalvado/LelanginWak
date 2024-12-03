@@ -4,15 +4,16 @@ import { db } from '../firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { themeColors } from '../../theme/theme';
 
-export default function EditBarang({ route, navigation }) {
-  const { item } = route.params; 
-  const [name, setName] = useState(item.name); 
+export default function EditUser({ route, navigation }) {
+  const { item } = route.params; // Mendapatkan item yang akan diedit
+  const [name, setName] = useState(item.name);  // Menyimpan nilai yang diedit
 
   const handleSave = async () => {
     try {
-      const itemRef = doc(db, 'barang', item.id); 
-      await updateDoc(itemRef, { name: name }); 
-      navigation.goBack();  
+      const itemRef = doc(db, 'barang', item.id); // Mendapatkan reference dokumen
+      await updateDoc(itemRef, { name: name });  // Update nama barang di Firestore
+
+      navigation.goBack();  // Kembali ke halaman sebelumnya setelah berhasil
     } catch (error) {
       console.error("Error updating document: ", error);
     }
@@ -21,6 +22,7 @@ export default function EditBarang({ route, navigation }) {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg }}>
       <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 28 }}>
+        {/* Judul Halaman */}
         <Text style={{
           fontSize: 24,
           fontWeight: 'bold',
@@ -30,6 +32,8 @@ export default function EditBarang({ route, navigation }) {
         }}>
           Edit Barang
         </Text>
+
+        {/* Input Nama Barang */}
         <TextInput
           value={name}
           onChangeText={setName}
@@ -47,6 +51,8 @@ export default function EditBarang({ route, navigation }) {
             elevation: 3
           }}
         />
+
+        {/* Tombol Simpan Perubahan */}
         <TouchableOpacity
           onPress={handleSave}
           style={{
@@ -69,6 +75,8 @@ export default function EditBarang({ route, navigation }) {
             Simpan Perubahan
           </Text>
         </TouchableOpacity>
+
+        {/* Tombol Kembali */}
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={{

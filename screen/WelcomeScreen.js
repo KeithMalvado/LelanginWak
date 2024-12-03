@@ -19,33 +19,6 @@ export default function WelcomeScreen() {
                     />
                 </View>
                 <View style={{ marginHorizontal: 28 }}>
-                    {/* Hapus tombol Edit Barang dan Delete Barang */}
-                    {/* <TouchableOpacity
-                        onPress={() => navigation.navigate('LihatBarang')}
-                        style={{
-                            paddingVertical: 12,
-                            backgroundColor: themeColors.button,
-                            borderRadius: 16,
-                            marginBottom: 16,
-                        }}
-                    >
-                        <Text style={{ fontSize: 20, fontWeight: 'bold', textAlign: 'center', color: themeColors.textSecondary }}>
-                            Lihat Barang
-                        </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        onPress={() => navigation.navigate('TambahBarang')}
-                        style={{
-                            paddingVertical: 12,
-                            backgroundColor: themeColors.button,
-                            borderRadius: 16,
-                            marginBottom: 16,
-                        }}
-                    >
-                        <Text style={{ fontSize: 20, fontWeight: 'bold', textAlign: 'center', color: themeColors.textSecondary }}>
-                            Tambah Barang
-                        </Text>
-                    </TouchableOpacity> */}
                     <TouchableOpacity
                         onPress={() => navigation.navigate('Signup')}
                         style={{

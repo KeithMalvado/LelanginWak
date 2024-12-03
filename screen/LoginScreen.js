@@ -1,54 +1,41 @@
 import React, { useState } from 'react';
 import { View, Text, SafeAreaView, TouchableOpacity, TextInput, Image, Alert, ActivityIndicator } from 'react-native';
-import { themeColors } from '../theme/theme';
-import { ArrowLeftIcon } from 'react-native-heroicons/solid';
 import { useNavigation } from '@react-navigation/native';
-import { useSignIn } from '@clerk/clerk-expo'; 
+import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { auth } from '../screen/firebase/index'; 
+import { themeColors } from '../theme/theme';
+import { ArrowLeftIcon } from 'react-native-heroicons/outline';
 
 export default function LoginScreen() {
   const navigation = useNavigation();
-  const { signIn, isLoaded } = useSignIn();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please enter your email and password.');
+      Alert.alert('Error', 'Email dan password wajib diisi.');
       return;
     }
-  
+
     setLoading(true);
     try {
-      await signIn.create({
-        identifier: email,
-        password: password,
-      });
-      navigation.replace('Home');
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      if (user.emailVerified) {
+        console.log('Login berhasil:', user.email);
+        navigation.replace('Home');
+      } else {
+        Alert.alert('Verifikasi diperlukan', 'Silakan verifikasi email Anda terlebih dahulu.');
+        await signOut(auth);
+      }
     } catch (error) {
-      Alert.alert('Login failed', 'Please check your credentials and try again.');
+      Alert.alert('Login gagal', error.message);
     } finally {
       setLoading(false);
     }
   };
-  
-
-  const handleGoogleLogin = async () => {
-    try {
-      const redirectUrl = 'https://auth.expo.io/@keithhyper/lelangin';
-      const result = await signIn.authenticateWithRedirect({
-        strategy: 'oauth_google',
-        redirectUrl,
-      });
-  
-      if (result.status === 'complete') {
-        navigation.replace('Home');
-      }
-    } catch (error) {
-      Alert.alert('Google Login Failed', 'Please try again later.');
-    }
-  };
-  
 
   return (
     <View style={{ flex: 1, backgroundColor: themeColors.bg }}>
@@ -89,6 +76,7 @@ export default function LoginScreen() {
                 marginBottom: 15,
               }}
               placeholder="Masukan Alamat Email"
+              keyboardType="email-address"
               value={email}
               onChangeText={setEmail}
             />
@@ -114,7 +102,7 @@ export default function LoginScreen() {
                 borderRadius: 25,
               }}
               onPress={handleLogin}
-              disabled={!isLoaded || loading}
+              disabled={loading}
             >
               {loading ? (
                 <ActivityIndicator color="white" />
@@ -133,15 +121,7 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
           <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 30 }}>
-            <TouchableOpacity
-              style={{ padding: 10, backgroundColor: '#f1f1f1', borderRadius: 25 }}
-              onPress={handleGoogleLogin}
-            >
-              <Image source={require('../assets/images/google.png')} style={{ width: 40, height: 40 }} />
-            </TouchableOpacity>
-          </View>
-          <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 30 }}>
-            <Text style={{ color: themeColors.bg, borderRadius: 25 }}>Belum Memiliki Akun?</Text>
+            <Text style={{ color: themeColors.bg, borderRadius: 25 }}>Belum Memiliki Akun? </Text>
             <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
               <Text style={{ color: themeColors.button, fontWeight: 'bold' }}>Daftar</Text>
             </TouchableOpacity>
