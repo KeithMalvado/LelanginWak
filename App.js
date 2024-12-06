@@ -1,21 +1,22 @@
-import React, { useState } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import React, { useState } from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import WelcomeScreen from './screen/WelcomeScreen';
-import LoginScreen from './screen/LoginScreen';
-import SignUpScreen from './screen/SignUpScreen';
-import HomeScreen from './screen/HomeScreen';
-import TambahBarang from './screen/barang/TambahBarang';
-import HapusBarang from './screen/barang/HapusBarang';
-import EditBarang from './screen/barang/EditBarang';
-import LihatBarang from './screen/barang/LihatBarang';
-import TambahUser from './screen/user/TambahUser';
-import HapusUser from './screen/user/HapusUser';
-import EditUser from './screen/user/EditUser';
-import LihatUser from './screen/user/LihatUser';
-import ScreenDataUser from './screen/user/data/ScreenDataUser';
-
+import HomescreenPetugas from "./screen/Petugas/HomescreenPetugas";
+import WelcomeScreen from "./screen/WelcomeScreen";
+import LoginScreen from "./screen/LoginScreen";
+import SignUpScreen from "./screen/SignUpScreen";
+import HomeScreen from "./screen/HomeScreen";
+import TambahBarang from "./screen/barang/TambahBarang";
+import HapusBarang from "./screen/barang/HapusBarang";
+import EditBarang from "./screen/barang/EditBarang";
+import LihatBarang from "./screen/barang/LihatBarang";
+import TambahUser from "./screen/user/TambahUser";
+import HapusUser from "./screen/user/HapusUser";
+import EditUser from "./screen/user/EditUser";
+import LihatUser from "./screen/user/LihatUser";
+import ScreenDataUser from "./screen/user/data/ScreenDataUser";
+import PetugasNavigator from "./screen/Petugas/PetugasNavigator";
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -37,7 +38,9 @@ export default function App() {
 
   const handleUpdateBarang = (updatedItem) => {
     setBarang((prevBarang) =>
-      prevBarang.map((item) => (item.id === updatedItem.id ? updatedItem : item))
+      prevBarang.map((item) =>
+        item.id === updatedItem.id ? updatedItem : item
+      )
     );
     setSelectedBarang(updatedItem);
   };
@@ -61,19 +64,23 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Welcome" screenOptions={{ headerShown: false }}>
+      <Stack.Navigator
+        initialRouteName="Welcome"
+        screenOptions={{ headerShown: false }}
+      >
         <Stack.Screen name="Welcome" component={WelcomeScreen} />
+        <Stack.Screen name="HCpetugas" component={PetugasNavigator} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Signup" component={SignUpScreen} />
-        <Stack.Screen name="DataUser" component={ScreenDataUser}/>
+        <Stack.Screen name="DataUser" component={ScreenDataUser} />
         <Stack.Screen name="Home">
-          {props => <HomeScreen {...props} />}
+          {(props) => <HomeScreen {...props} />}
         </Stack.Screen>
         <Stack.Screen name="TambahBarang">
-          {props => <TambahBarang {...props} onAdd={handleAddBarang} />}
+          {(props) => <TambahBarang {...props} onAdd={handleAddBarang} />}
         </Stack.Screen>
         <Stack.Screen name="HapusBarang">
-          {props => (
+          {(props) => (
             <HapusBarang
               {...props}
               item={selectedBarang}
@@ -82,7 +89,7 @@ export default function App() {
           )}
         </Stack.Screen>
         <Stack.Screen name="EditBarang">
-          {props => (
+          {(props) => (
             <EditBarang
               {...props}
               item={selectedBarang}
@@ -91,7 +98,7 @@ export default function App() {
           )}
         </Stack.Screen>
         <Stack.Screen name="LihatBarang">
-          {props => (
+          {(props) => (
             <LihatBarang
               {...props}
               barang={barang}
@@ -100,10 +107,10 @@ export default function App() {
           )}
         </Stack.Screen>
         <Stack.Screen name="TambahUser">
-          {props => <TambahUser {...props} onAdd={handleAddUser} />}
+          {(props) => <TambahUser {...props} onAdd={handleAddUser} />}
         </Stack.Screen>
         <Stack.Screen name="HapusUser">
-          {props => (
+          {(props) => (
             <HapusUser
               {...props}
               user={selectedUser}
@@ -112,7 +119,7 @@ export default function App() {
           )}
         </Stack.Screen>
         <Stack.Screen name="EditUser">
-          {props => (
+          {(props) => (
             <EditUser
               {...props}
               user={selectedUser}
@@ -121,7 +128,7 @@ export default function App() {
           )}
         </Stack.Screen>
         <Stack.Screen name="LihatUser">
-          {props => (
+          {(props) => (
             <LihatUser
               {...props}
               users={users}
@@ -130,7 +137,7 @@ export default function App() {
           )}
         </Stack.Screen>
         <Stack.Screen name="DataDiri">
-          {props => <ScreenDataUser {...props} />}
+          {(props) => <ScreenDataUser {...props} />}
         </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
