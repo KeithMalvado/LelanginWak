@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
-import { auth } from '../screen/firebase/index';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../screen/firebase/index';
 import { themeColors } from '../theme/theme';
 
-const Registrasi = () => {
+const Signup = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -28,9 +29,15 @@ const Registrasi = () => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
+
+      await setDoc(doc(db, 'users', user.uid), {
+        email: user.email,
+        role: 'pelanggan',
+      });
+
       await sendEmailVerification(user);
       Alert.alert('Sukses', 'Akun berhasil dibuat. Silakan verifikasi email Anda.');
-      navigation.navigate('Login'); 
+      navigation.navigate('Login');
     } catch (error) {
       Alert.alert('Error', error.message);
     } finally {
@@ -81,7 +88,7 @@ const Registrasi = () => {
         disabled={loading}
       >
         <Text style={{ fontSize: 18, fontWeight: 'bold', color: themeColors.textSecondary }}>
-          {loading ? 'Loading...' : 'Registrasi'}
+          {loading ? 'Loading...' : 'Signup'}
         </Text>
       </TouchableOpacity>
       <Text style={{ textAlign: 'center', color: themeColors.textSecondary }}>
@@ -97,4 +104,4 @@ const Registrasi = () => {
   );
 };
 
-export default Registrasi;
+export default Signup;

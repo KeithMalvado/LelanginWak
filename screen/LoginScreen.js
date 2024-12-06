@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, SafeAreaView, TouchableOpacity, TextInput, Image, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { auth } from '../screen/firebase/index'; 
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../screen/firebase/index';
 import { themeColors } from '../theme/theme';
 import { ArrowLeftIcon } from 'react-native-heroicons/outline';
 
@@ -24,8 +25,23 @@ export default function LoginScreen() {
       const user = userCredential.user;
 
       if (user.emailVerified) {
-        console.log('Login berhasil:', user.email);
-        navigation.replace('Home');
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
+
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          console.log('Login berhasil:', user.email, 'Role:', userData.role);
+          if (userData.role === 'pelanggan') {
+            navigation.replace('Home');
+          } else if (userData.role === 'admin') {
+            navigation.replace('HomeAdmin');
+          } else {
+            Alert.alert('Error', 'Role pengguna tidak dikenal.');
+          }
+        } else {
+          Alert.alert('Error', 'Data pengguna tidak ditemukan.');
+          await signOut(auth);
+        }
       } else {
         Alert.alert('Verifikasi diperlukan', 'Silakan verifikasi email Anda terlebih dahulu.');
         await signOut(auth);

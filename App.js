@@ -65,7 +65,7 @@ export default function App() {
         <Stack.Screen name="Welcome" component={WelcomeScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Signup" component={SignUpScreen} />
-        <Stack.Screen name="DataUser" component={ScreenDataUser}/>
+        <Stack.Screen name="DataUser" component={ScreenDataUser} />
         <Stack.Screen name="Home">
           {props => <HomeScreen {...props} />}
         </Stack.Screen>
@@ -128,9 +128,6 @@ export default function App() {
               setSelectedUser={setSelectedUser}
             />
           )}
-        </Stack.Screen>
-        <Stack.Screen name="DataDiri">
-          {props => <ScreenDataUser {...props} />}
         </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
