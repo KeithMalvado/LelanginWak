@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
+import { Text, TextInput, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { auth } from '../screen/firebase/index';
+import { getFirestore, doc, setDoc } from 'firebase/firestore';
 import { themeColors } from '../theme/theme';
 
 const Registrasi = () => {
@@ -11,6 +12,7 @@ const Registrasi = () => {
   const [loading, setLoading] = useState(false);
 
   const navigation = useNavigation();
+  const db = getFirestore();
 
   const handleSignUp = async () => {
     if (!email || !password) {
@@ -28,6 +30,12 @@ const Registrasi = () => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
+
+      await setDoc(doc(db, 'users', user.uid), {
+        email: user.email,
+        role: 'user', 
+      });
+
       await sendEmailVerification(user);
       Alert.alert('Sukses', 'Akun berhasil dibuat. Silakan verifikasi email Anda.');
       navigation.navigate('Login'); 

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-
+import HomeAdmin from "./screen/user/admin/HomeAdmin";
 import HomescreenPetugas from "./screen/Petugas/HomescreenPetugas";
 import WelcomeScreen from "./screen/WelcomeScreen";
 import LoginScreen from "./screen/LoginScreen";
@@ -17,6 +17,13 @@ import EditUser from "./screen/user/EditUser";
 import LihatUser from "./screen/user/LihatUser";
 import ScreenDataUser from "./screen/user/data/ScreenDataUser";
 import PetugasNavigator from "./screen/Petugas/PetugasNavigator";
+import HomePageAdmin from "./screen/user/admin/HomeAdmin";
+import DaftarBarang from "./screen/Lelang/DaftarLelang";
+import DetailLelang from "./screen/Lelang/DetailBarang";
+import IkutLelang from "./screen/Lelang/ikutlelang";
+import ProfileScreen from "./screen/ProfileScreen";
+import RiwayatLelang from "./screen/Lelang/RiwayatLelang"
+
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -65,9 +72,14 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="Welcome"
+        initialRouteName="Login"
         screenOptions={{ headerShown: false }}
       >
+        <Stack.Screen name="Pembayaran" component={EditUser}/>
+        <Stack.Screen name="RiwayatLelang" component={RiwayatLelang}/>
+        <Stack.Screen name="DetailBarang" component={DetailLelang}/>
+        <Stack.Screen name="DaftarBarang" component={DaftarBarang}/>
+        <Stack.Screen name="HomeAdmin" component={HomeAdmin}/>
         <Stack.Screen name="Welcome" component={WelcomeScreen} />
         <Stack.Screen name="HCpetugas" component={PetugasNavigator} />
         <Stack.Screen name="Login" component={LoginScreen} />
@@ -76,6 +88,7 @@ export default function App() {
         <Stack.Screen name="Home">
           {(props) => <HomeScreen {...props} />}
         </Stack.Screen>
+        <Stack.Screen name="Profile" component={ProfileScreen}/>
         <Stack.Screen name="TambahBarang">
           {(props) => <TambahBarang {...props} onAdd={handleAddBarang} />}
         </Stack.Screen>
@@ -139,6 +152,8 @@ export default function App() {
         <Stack.Screen name="DataDiri">
           {(props) => <ScreenDataUser {...props} />}
         </Stack.Screen>
+        <Stack.Screen name="ikutlelang" component={IkutLelang}/>
+        <Stack.Screen name="DetailLelang" component={DetailLelang}/>
       </Stack.Navigator>
     </NavigationContainer>
   );

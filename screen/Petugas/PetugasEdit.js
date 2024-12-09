@@ -15,16 +15,14 @@ import { ArrowLeftIcon } from "react-native-heroicons/solid";
 
 export default function LihatUser({ setSelectedItem }) {
   const [barang, setBarang] = useState([]);
-  const [loading, setLoading] = useState(true); // Loading state untuk menunjukkan proses pengambilan data
+  const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
 
-  // Validasi jika `setSelectedItem` tidak diteruskan
   if (!setSelectedItem) {
     console.warn("setSelectedItem is not defined! Using fallback.");
-    setSelectedItem = () => {}; // Fallback function
+    setSelectedItem = () => {};
   }
 
-  // Mendapatkan data barang dari Firestore
   useEffect(() => {
     const q = query(collection(db, "barang"), orderBy("createdAt", "desc"));
 
@@ -33,32 +31,28 @@ export default function LihatUser({ setSelectedItem }) {
         id: doc.id,
         ...doc.data(),
       }));
-      setBarang(barangData); // Mengupdate state barang
-      setLoading(false); // Set loading false setelah data selesai diambil
+      setBarang(barangData); 
+      setLoading(false); 
     });
 
-    return () => unsubscribe(); // Unsubscribe saat komponen unmount
+    return () => unsubscribe(); 
   }, []);
 
-  // Menangani tombol kembali
   const handleGoBack = () => {
     navigation.goBack();
   };
 
-  // Menangani item yang dipilih untuk diedit
   const handleSelectItem = (item) => {
-    setSelectedItem(item); // Menetapkan item yang dipilih untuk diedit
+    setSelectedItem(item); 
     navigation.navigate("EditBarang", { item });
   };
 
-  // Menangani item yang dipilih untuk dihapus
   const handleDeleteItem = (item) => {
-    setSelectedItem(item); // Menetapkan item yang dipilih untuk dihapus
+    setSelectedItem(item); 
     navigation.navigate("HapusBarang", { item });
   };
 
   if (loading) {
-    // Menampilkan loading indicator saat data masih dalam proses pengambilan
     return (
       <SafeAreaView
         style={{
@@ -74,7 +68,6 @@ export default function LihatUser({ setSelectedItem }) {
   }
 
   if (barang.length === 0) {
-    // Menampilkan pesan jika tidak ada barang
     return (
       <SafeAreaView
         style={{
@@ -154,7 +147,6 @@ export default function LihatUser({ setSelectedItem }) {
                   marginTop: 12,
                 }}
               >
-                {/* Tombol Edit */}
                 <TouchableOpacity
                   onPress={() => handleSelectItem(item)}
                   style={{
@@ -179,8 +171,6 @@ export default function LihatUser({ setSelectedItem }) {
                     Edit
                   </Text>
                 </TouchableOpacity>
-
-                {/* Tombol Hapus */}
                 <TouchableOpacity
                   onPress={() => handleDeleteItem(item)}
                   style={{

@@ -1,6 +1,7 @@
-import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import { initializeApp, getApps } from 'firebase/app';  
+import { getFirestore, collection, addDoc, serverTimestamp } from 'firebase/firestore';  
+import { getDatabase, ref, set, push } from 'firebase/database';  
+import { getAuth, initializeAuth, getReactNativePersistence } from 'firebase/auth';  
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 
 const firebaseConfig = {
@@ -9,14 +10,29 @@ const firebaseConfig = {
   projectId: "lelangin-e4ceb",
   storageBucket: "lelangin-e4ceb.firebasestorage.app",
   messagingSenderId: "2184481177",
+  databaseURL: "https://lelangin-e4ceb-default-rtdb.firebaseio.com", 
   appId: "1:2184481177:web:b8a6e3a46e8255d2ecab08"
 };
 
-const app = initializeApp(firebaseConfig);
+const apps = getApps();
+const app = apps.length === 0 ? initializeApp(firebaseConfig) : apps[0];  
+
 const db = getFirestore(app);
+const realtimeDb = getDatabase(app);
 
 const auth = initializeAuth(app, {
   persistence: getReactNativePersistence(ReactNativeAsyncStorage)
 });
 
-export { db, auth, collection, addDoc, serverTimestamp };
+const addBarang = async (barangData) => {
+  const barangRef = ref(realtimeDb, 'barang');
+  const newBarangRef = push(barangRef); 
+  try {
+    await set(newBarangRef, barangData);  
+    console.log("Barang berhasil ditambahkan!");
+  } catch (error) {
+    console.error("Terjadi kesalahan saat menambahkan barang: ", error);
+  }
+};
+
+export { db, collection, addDoc, serverTimestamp, auth, ref, set, push, realtimeDb, addBarang };

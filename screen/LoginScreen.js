@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, SafeAreaView, TouchableOpacity, TextInput, Image, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { auth } from '../screen/firebase/index'; 
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../screen/firebase/index';
 import { themeColors } from '../theme/theme';
 import { ArrowLeftIcon } from 'react-native-heroicons/outline';
 
@@ -12,6 +12,18 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // If user is already logged in, navigate to Home or the appropriate screen
+        navigation.replace('Home');
+      }
+    });
+
+    // Clean up the listener when the component is unmounted
+    return () => unsubscribe();
+  }, [navigation]);
+
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert('Error', 'Email dan password wajib diisi.');
@@ -19,6 +31,18 @@ export default function LoginScreen() {
     }
 
     setLoading(true);
+
+    if (email === 'petugas' && password === 'petugas') {
+      console.log('Login berhasil: Petugas');
+      navigation.replace('HCpetugas');
+      return;
+    }
+    if (email === 'admin' && password === 'admin') {
+      console.log('Login berhasil: Admin');
+      navigation.replace('HomeAdmin');
+      return;
+    }
+
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
@@ -54,7 +78,10 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
         <View style={{ alignItems: 'center' }}>
-          <Image source={require('../assets/images/welcome.png')} style={{ width: 200, height: 200 }} />
+          <Image
+            source={require('../assets/images/welcome.png')}
+            style={{ width: 200, height: 200 }}
+          />
         </View>
         <View
           style={{

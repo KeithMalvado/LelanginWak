@@ -2,70 +2,46 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, SafeAreaView, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { themeColors } from '../../../theme/theme'; 
 import { useNavigation, useRoute } from '@react-navigation/native'; 
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { getFirestore, collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, query, where, getDocs, collection } from 'firebase/firestore';
+import { getFirestore, addDoc, serverTimestamp } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 export default function ScreenDataUser({ onAdd }) {
   const [namaUser, setNamaUser] = useState('');
   const [alamatUser, setAlamatUser] = useState('');
   const [ktpUser, setKtpUser] = useState('');
-  const [phoneUser, setPhoneUser] = useState(''); // Input untuk nomor handphone
-  const [profileImage, setProfileImage] = useState(null); 
+  const [phoneUser, setPhoneUser] = useState('');
   const [loading, setLoading] = useState(false);
   const [userEmail, setUserEmail] = useState('');
-  const [isProfileCompleted, setIsProfileCompleted] = useState(false);
-  const [hasAlertShown, setHasAlertShown] = useState(false); // Flag untuk mencegah popup dua kali
+  const [userId, setUserId] = useState(null);
 
   const navigation = useNavigation();
   const route = useRoute();
   const db = getFirestore();
   const auth = getAuth();
 
-  const userId = route.params?.userId; 
-
   useEffect(() => {
-    if (userId) {
+    const user = auth.currentUser;
+    if (user) {
+      setUserEmail(user.email);
+
       const fetchUserData = async () => {
-        try {
-          const userDoc = await getDoc(doc(db, 'users', userId));
-          if (userDoc.exists()) {
-            const data = userDoc.data();
-            setNamaUser(data.name || '');
-            setAlamatUser(data.address || '');
-            setKtpUser(data.ktp || '');
-            setPhoneUser(data.phone || ''); // Ambil nomor handphone dari Firebase
-            setProfileImage(data.profileImage || null);
-            setIsProfileCompleted(data.isProfileCompleted || false);
-          } else {
-            Alert.alert('Error', 'User not found.');
-          }
-        } catch (error) {
-          console.error('Error fetching user data: ', error);
+        const q = query(collection(db, 'users'), where('email', '==', user.email));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+          const docData = querySnapshot.docs[0].data();
+          setUserId(querySnapshot.docs[0].id);  
+          setNamaUser(docData.name || '');
+          setAlamatUser(docData.address || '');
+          setKtpUser(docData.ktp || '');
+          setPhoneUser(docData.phone || '');
         }
       };
 
       fetchUserData();
     }
-
-    const user = auth.currentUser;
-    if (user) {
-      setUserEmail(user.email); // Get the user's email
-    }
-  }, [userId, db, auth]);
-
-  useEffect(() => {
-    // Show the popup only if profile is not completed, email is present, and alert has not been shown
-    if (userEmail && !isProfileCompleted && !hasAlertShown) {
-      Alert.alert(
-        'Lengkapi Data Diri',
-        'Anda belum melengkapi data diri. Harap isi semua informasi.',
-        [
-          { text: 'OK', onPress: () => setHasAlertShown(true) } // Set flag to true after alert is shown
-        ]
-      );
-    }
-  }, [userEmail, isProfileCompleted, hasAlertShown]);
+  }, [auth, db]);
 
   const handleAdd = async () => {
     if (!namaUser || !alamatUser || !ktpUser || !phoneUser) {
@@ -76,37 +52,31 @@ export default function ScreenDataUser({ onAdd }) {
     setLoading(true);
     try {
       if (userId) {
-        // Update the existing user data and mark profile as completed
         await updateDoc(doc(db, 'users', userId), {
           name: namaUser,
           address: alamatUser,
           ktp: ktpUser,
-          phone: phoneUser, // Update nomor handphone
-          profileImage: profileImage,
-          isProfileCompleted: true, // Set profile as completed
+          phone: phoneUser,
+          isProfileCompleted: true,
         });
         Alert.alert('Success', 'User data updated successfully');
       } else {
-        // Add new user data if no userId
         await addDoc(collection(db, 'users'), {
           name: namaUser,
           address: alamatUser,
           ktp: ktpUser,
-          phone: phoneUser, // Add nomor handphone
-          profileImage: profileImage,
+          phone: phoneUser,
           createdAt: serverTimestamp(),
           email: userEmail,
-          isProfileCompleted: false, // Initially set profile as incomplete
+          isProfileCompleted: true,
         });
         Alert.alert('Success', 'User added successfully');
       }
 
-      // Clear fields and call the onAdd callback if provided
       setNamaUser('');
       setAlamatUser('');
       setKtpUser('');
-      setPhoneUser(''); // Clear nomor handphone
-      setProfileImage(null);
+      setPhoneUser('');
       
       if (onAdd && typeof onAdd === 'function') {
         onAdd();
@@ -196,3 +166,4 @@ const inputStyle = {
   marginBottom: 16,
   fontSize: 16,
 };
+

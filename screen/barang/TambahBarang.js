@@ -1,101 +1,217 @@
-import React, { useState } from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, TextInput } from 'react-native';
-import { themeColors } from '../../theme/theme'; 
-import { useNavigation } from '@react-navigation/native';
-import { db, collection, addDoc, serverTimestamp } from '../firebase/index'; 
+import React, { useState, useEffect } from 'react';
+import { View, Text, SafeAreaView, TouchableOpacity, TextInput, Alert, Image } from 'react-native';
+import { ref, push } from 'firebase/database';
+import { getFirestore, query, where, getDocs, collection } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+import { realtimeDb } from '../firebase/index';
+import { themeColors } from '../../theme/theme';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
-export default function TambahBarang({ onAdd }) {
+export default function TambahBarang() {
   const [namaBarang, setNamaBarang] = useState('');
-  const navigation = useNavigation();
+  const [deskripsi, setDeskripsi] = useState('');
+  const [hargaTertinggi, setHargaTertinggi] = useState('');
+  const [openBit, setOpenBit] = useState('');
+  const [tanggalLelang, setTanggalLelang] = useState(new Date());
+  const [jamAwalLelang, setJamAwalLelang] = useState(new Date());
+  const [jamTutupLelang, setJamTutupLelang] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePickerAwal, setShowTimePickerAwal] = useState(false);
+  const [showTimePickerTutup, setShowTimePickerTutup] = useState(false);
+  const [userData, setUserData] = useState(null);
 
-  const handleAdd = async () => {
-    if (namaBarang.trim()) {
-      try {
-        await addDoc(collection(db, 'barang'), {
-          name: namaBarang,
-          createdAt: serverTimestamp(),
-        });
-        setNamaBarang('');
-        if (onAdd && typeof onAdd === 'function') {
-          onAdd();
-        } else {
-          console.warn('onAdd is not defined or not a function');
+  const auth = getAuth();
+  const db = getFirestore();
+
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      const fetchUserData = async () => {
+        const q = query(collection(db, 'users'), where('email', '==', user.email));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+          setUserData(querySnapshot.docs[0].data());
         }
-      } catch (error) {
-        console.error('Error menambahkan barang: ', error);
-      }
+      };
+      fetchUserData();
     }
+  }, [auth, db]);
+
+  const handleHargaTertinggiChange = (text) => {
+    const numericValue = text.replace(/[^0-9]/g, '');
+    setHargaTertinggi(numericValue);
   };
 
+  const handleOpenBitChange = (text) => {
+    const numericValue = text.replace(/[^0-9]/g, '');
+    setOpenBit(numericValue);
+  };
+
+  const handleDateChange = (event, date) => {
+    setShowDatePicker(false);
+    if (date) setTanggalLelang(date);
+  };
+
+  const handleTimeAwalChange = (event, date) => {
+    setShowTimePickerAwal(false);
+    if (date) setJamAwalLelang(date);
+  };
+
+  const handleTimeTutupChange = (event, date) => {
+    setShowTimePickerTutup(false);
+    if (date) setJamTutupLelang(date);
+  };
+
+  const handleAddBarang = async () => {
+    if (namaBarang && deskripsi && hargaTertinggi && openBit && tanggalLelang && jamAwalLelang && jamTutupLelang) {
+      if (isNaN(parseInt(hargaTertinggi)) || isNaN(parseInt(openBit))) {
+        Alert.alert('Warning', 'Max Bid dan Open Bid harus berupa angka.');
+        return;
+      }
+  
+      if (parseInt(openBit) >= parseInt(hargaTertinggi)) {
+        Alert.alert('Warning', 'Open Bid harus lebih kecil dari Max Bid.');
+        return;
+      }
+  
+      const barangData = {
+        namaBarang,
+        deskripsi,
+        hargaTertinggi: parseInt(hargaTertinggi),
+        openBit: parseInt(openBit),
+        hargaSaatIni: parseInt(openBit), // Mengatur hargaSaatIni dengan nilai openBit
+        tanggalLelang: tanggalLelang.getTime(),
+        jamAwalLelang: jamAwalLelang.getTime(),
+        jamTutupLelang: jamTutupLelang.getTime(),
+        createdAt: Date.now(),
+        user: {
+          address: userData?.address || '',
+          email: userData?.email || '',
+          ktp: userData?.ktp || '',
+          name: userData?.name || '',
+          phone: userData?.phone || '',
+          username: userData?.name || '', // Menyimpan nama pengguna sebagai username
+        },
+      };
+  
+      try {
+        const barangRef = ref(realtimeDb, 'barang');
+        const newBarangRef = push(barangRef, barangData);
+        const newBarangId = newBarangRef.key;
+  
+        Alert.alert('Success', `Barang berhasil ditambahkan dengan ID: ${newBarangId}`);
+        setNamaBarang('');
+        setDeskripsi('');
+        setHargaTertinggi('');
+        setOpenBit('');
+        setTanggalLelang(new Date());
+        setJamAwalLelang(new Date());
+        setJamTutupLelang(new Date());
+      } catch (error) {
+        console.error('Error adding barang:', error);
+        Alert.alert('Error', 'Terjadi kesalahan saat menambahkan barang.');
+      }
+    } else {
+      Alert.alert('Warning', 'Mohon lengkapi semua kolom!');
+    }
+  };
+  
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg }}>
-      <View style={{ flex: 1, justifyContent: 'space-around', marginTop: 16, marginBottom: 16 }}>
-        <Text
-          style={{
-            fontSize: 32,
-            fontWeight: 'bold',
-            textAlign: 'center',
-            color: themeColors.text,
-            marginBottom: 16,
-          }}
-        >
-          Tambah Barang
+    <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg, justifyContent: 'center', paddingHorizontal: 20 }}>
+      <Text style={{ fontSize: 24, fontWeight: 'bold', color: themeColors.text, marginBottom: 20, textAlign: 'center' }}>
+        Tambah Barang
+      </Text>
+      <Image
+        source={require('../../assets/images/welcome.png')}
+        style={{ width: 300, height: 300, alignSelf: 'center', marginBottom: 20 }}
+      />
+      <TextInput
+        style={{
+          padding: 16,
+          backgroundColor: themeColors.secondary,
+          color: themeColors.textSecondary,
+          borderRadius: 16,
+          marginBottom: 12,
+        }}
+        placeholder="Nama Barang"
+        value={namaBarang}
+        onChangeText={setNamaBarang}
+      />
+      <TextInput
+        style={{
+          padding: 16,
+          backgroundColor: themeColors.secondary,
+          color: themeColors.textSecondary,
+          borderRadius: 16,
+          marginBottom: 12,
+        }}
+        placeholder="Deskripsi"
+        value={deskripsi}
+        onChangeText={setDeskripsi}
+      />
+      <TextInput
+        style={{
+          padding: 16,
+          backgroundColor: themeColors.secondary,
+          color: themeColors.textSecondary,
+          borderRadius: 16,
+          marginBottom: 12,
+        }}
+        placeholder="Max Bid"
+        keyboardType="numeric"
+        value={hargaTertinggi}
+        onChangeText={handleHargaTertinggiChange}
+      />
+      <TextInput
+        style={{
+          padding: 16,
+          backgroundColor: themeColors.secondary,
+          color: themeColors.textSecondary,
+          borderRadius: 16,
+          marginBottom: 12,
+        }}
+        placeholder="Harga Start"
+        keyboardType="numeric"
+        value={openBit}
+        onChangeText={handleOpenBitChange}
+      />
+      <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+        <Text style={{ color: themeColors.text, marginBottom: 12 }}>
+          Pilih Tanggal Lelang: {tanggalLelang.toDateString()}
         </Text>
-
-        <View style={{ marginHorizontal: 28 }}>
-          <Text
-            style={{
-              fontSize: 18,
-              color: themeColors.text,
-              marginBottom: 8,
-              fontWeight: 'bold',
-            }}
-          >
-            Nama Barang
-          </Text>
-          <TextInput
-            value={namaBarang}
-            onChangeText={setNamaBarang}
-            placeholder="Masukkan Nama Barang"
-            style={{
-              padding: 16,
-              backgroundColor: themeColors.secondary,
-              color: themeColors.textSecondary,
-              borderRadius: 16,
-              marginBottom: 16,
-              fontSize: 16,
-            }}
-          />
-
-          <TouchableOpacity
-            onPress={handleAdd}
-            style={{
-              paddingVertical: 12,
-              backgroundColor: themeColors.button,
-              borderRadius: 16,
-              marginBottom: 16,
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 20,
-                fontWeight: 'bold',
-                textAlign: 'center',
-                color: themeColors.textSecondary,
-              }}
-            >
-              Tambah Barang
-            </Text>
-          </TouchableOpacity>
-{/* 
-          <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 12 }}>
-            <Text style={{ color: themeColors.text }}>Sudah punya barang?</Text>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Text style={{ fontWeight: 'bold', color: themeColors.primary }}> Kembali</Text>
-            </TouchableOpacity>
-          </View> */}
-        </View>
-      </View>
+      </TouchableOpacity>
+      {showDatePicker && (
+        <DateTimePicker value={tanggalLelang} mode="date" display="default" onChange={handleDateChange} />
+      )}
+      <TouchableOpacity onPress={() => setShowTimePickerAwal(true)}>
+        <Text style={{ color: themeColors.text, marginBottom: 12 }}>
+          Pilih Jam Awal Lelang: {jamAwalLelang.toLocaleTimeString()}
+        </Text>
+      </TouchableOpacity>
+      {showTimePickerAwal && (
+        <DateTimePicker value={jamAwalLelang} mode="time" display="default" onChange={handleTimeAwalChange} />
+      )}
+      <TouchableOpacity onPress={() => setShowTimePickerTutup(true)}>
+        <Text style={{ color: themeColors.text, marginBottom: 20 }}>
+          Pilih Jam Tutup Lelang: {jamTutupLelang.toLocaleTimeString()}
+        </Text>
+      </TouchableOpacity>
+      {showTimePickerTutup && (
+        <DateTimePicker value={jamTutupLelang} mode="time" display="default" onChange={handleTimeTutupChange} />
+      )}
+      <TouchableOpacity
+        style={{
+          paddingVertical: 16,
+          backgroundColor: themeColors.button,
+          borderRadius: 16,
+          alignItems: 'center',
+        }}
+        onPress={handleAddBarang}
+      >
+        <Text style={{ fontSize: 18, fontWeight: 'bold', color: themeColors.textSecondary }}>Tambah Barang</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }

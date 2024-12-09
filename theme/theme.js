@@ -1,6 +1,9 @@
+import { TextInput } from "react-native-web";
+
 export const themeColors = {
     bg: '#6a1b9a', 
     text: '#ffffff',
+    TextInput: '#000',
     primary: '#9c27b0', 
     secondary: '#f3e5f5', 
     accent: '#7b1fa2', 

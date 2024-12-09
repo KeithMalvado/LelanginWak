@@ -8,41 +8,36 @@ import { ArrowLeftIcon } from 'react-native-heroicons/solid';
 
 export default function LihatBarang({ setSelectedItem }) {
   const [barang, setBarang] = useState([]); 
-  const [loading, setLoading] = useState(true); // Loading state untuk menunjukkan proses pengambilan data
+  const [loading, setLoading] = useState(true); 
   const navigation = useNavigation();
 
-  // Mendapatkan data barang dari Firestore
   useEffect(() => {
     const q = query(collection(db, 'barang'), orderBy('createdAt', 'desc'));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const barangData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setBarang(barangData); // Mengupdate state barang
-      setLoading(false); // Set loading false setelah data selesai diambil
+      setBarang(barangData);
+      setLoading(false); 
     });
 
-    return () => unsubscribe(); // Unsubscribe saat komponen unmount
+    return () => unsubscribe(); 
   }, []);  
 
-  // Menangani tombol kembali
   const handleGoBack = () => {
     navigation.goBack();
   };
 
-  // Menangani item yang dipilih untuk diedit
   const handleSelectItem = (item) => {
-    setSelectedItem(item);  // Menetapkan item yang dipilih untuk diedit
+    setSelectedItem(item); 
     navigation.navigate('EditBarang', { item });
   };
 
-  // Menangani item yang dipilih untuk dihapus
   const handleDeleteItem = (item) => {
-    setSelectedItem(item);  // Menetapkan item yang dipilih untuk dihapus
+    setSelectedItem(item); 
     navigation.navigate('HapusBarang', { item });
   };
 
   if (loading) {
-    // Menampilkan loading indicator saat data masih dalam proses pengambilan
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color={themeColors.primary} />
@@ -51,7 +46,6 @@ export default function LihatBarang({ setSelectedItem }) {
   }
 
   if (barang.length === 0) {
-    // Menampilkan pesan jika tidak ada barang
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg, justifyContent: 'center', alignItems: 'center' }}>
         <Text style={{ color: themeColors.text, fontSize: 18 }}>Tidak ada barang yang tersedia.</Text>
@@ -104,7 +98,6 @@ export default function LihatBarang({ setSelectedItem }) {
                 {item.name}
               </Text>
               <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 12 }}>
-                {/* Tombol Edit */}
                 <TouchableOpacity
                   onPress={() => handleSelectItem(item)}
                   style={{
