@@ -5,22 +5,21 @@ import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebas
 import { auth } from '../screen/firebase/index';
 import { themeColors } from '../theme/theme';
 import { ArrowLeftIcon } from 'react-native-heroicons/outline';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 export default function LoginScreen() {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        // If user is already logged in, navigate to Home or the appropriate screen
         navigation.replace('Home');
       }
     });
-
-    // Clean up the listener when the component is unmounted
     return () => unsubscribe();
   }, [navigation]);
 
@@ -29,9 +28,7 @@ export default function LoginScreen() {
       Alert.alert('Error', 'Email dan password wajib diisi.');
       return;
     }
-
     setLoading(true);
-
     if (email === 'petugas' && password === 'petugas') {
       console.log('Login berhasil: Petugas');
       navigation.replace('HCpetugas');
@@ -42,7 +39,6 @@ export default function LoginScreen() {
       navigation.replace('HomeAdmin');
       return;
     }
-
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
@@ -108,17 +104,30 @@ export default function LoginScreen() {
               onChangeText={setEmail}
             />
             <Text style={{ color: themeColors.primary, marginLeft: 10 }}>Password</Text>
-            <TextInput
+            <View
               style={{
-                padding: 10,
+                flexDirection: 'row',
+                alignItems: 'center',
                 backgroundColor: '#f1f1f1',
                 borderRadius: 25,
+                paddingHorizontal: 10,
               }}
-              secureTextEntry
-              placeholder="Masukan Password"
-              value={password}
-              onChangeText={setPassword}
-            />
+            >
+              <TextInput
+                style={{ flex: 1, paddingVertical: 10 }}
+                secureTextEntry={!showPassword}
+                placeholder="Masukan Password"
+                value={password}
+                onChangeText={setPassword}
+              />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                <Ionicons
+                  name={showPassword ? 'eye-outline' : 'eye-off-outline'}
+                  size={24}
+                  color={themeColors.TextInput}
+                />
+              </TouchableOpacity>
+            </View>
             <TouchableOpacity style={{ alignItems: 'flex-end', marginVertical: 10 }}>
               <Text style={{ color: themeColors.primary }}>Lupa Password?</Text>
             </TouchableOpacity>

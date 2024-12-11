@@ -61,7 +61,7 @@ const IkutLelang = ({ route }) => {
     const maxBid = parseInt(barang.hargaTertinggi, 10); 
 
     if (!bidValue || isNaN(bidValue) || bidValue <= currentHighest || bidValue > maxBid) {
-      Alert.alert("Warning", "Bid Anda harus lebih tinggi dari harga saat ini.");
+      Alert.alert("Warning", "Bid Anda harus lebih tinggi harga saat ini / tidak lebih dari max bid.");
       return;
     }
 
@@ -98,7 +98,7 @@ const IkutLelang = ({ route }) => {
       if (bidValue >= maxBid) {
         await update(barangRef, {
           hargaSaatIni: bidValue,
-          winner: userId, // Simpan userId sebagai pemenang
+          winner: userId, 
           status: "selesai",
         });
         Alert.alert("Success", "Lelang selesai! Anda adalah pemenangnya.");
@@ -106,7 +106,7 @@ const IkutLelang = ({ route }) => {
       } else {
         await update(barangRef, {
           hargaSaatIni: bidValue,
-          winner: userId, // Simpan userId
+          winner: userId, 
         });
         Alert.alert("Success", "Bid berhasil diajukan.");
       }      

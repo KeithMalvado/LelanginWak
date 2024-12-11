@@ -9,7 +9,7 @@ import { getAuth } from 'firebase/auth';
 export default function Pembayaran({ onAdd }) {
   const [namaUser, setNamaUser] = useState('');
   const [alamatUser, setAlamatUser] = useState('');
-  const [ktpUser, setKtpUser] = useState('');  // NIK field (cannot be edited)
+  const [ktpUser, setKtpUser] = useState('');  
   const [phoneUser, setPhoneUser] = useState('');
   const [loading, setLoading] = useState(false);
   const [userEmail, setUserEmail] = useState('');
@@ -34,7 +34,7 @@ export default function Pembayaran({ onAdd }) {
           setUserId(querySnapshot.docs[0].id);  
           setNamaUser(docData.name || '');
           setAlamatUser(docData.address || '');
-          setKtpUser(docData.ktp || '');  // Set the NIK (but can't be edited)
+          setKtpUser(docData.ktp || '');  
           setPhoneUser(docData.phone || '');
         }
       };
@@ -48,8 +48,6 @@ export default function Pembayaran({ onAdd }) {
       Alert.alert('Error', 'Semua data wajib diisi.');
       return;
     }
-
-    // Confirmation Alert
     Alert.alert(
       'Konfirmasi',
       'Apakah anda sudah memastikan bahwa data anda sudah benar?',
@@ -64,21 +62,19 @@ export default function Pembayaran({ onAdd }) {
             setLoading(true);
             try {
               if (userId) {
-                // Jika userId sudah ada, berarti pengguna sedang mengedit data
                 await updateDoc(doc(db, 'users', userId), {
                   name: namaUser,
                   address: alamatUser,
-                  ktp: ktpUser,  // NIK field is not editable
+                  ktp: ktpUser,
                   phone: phoneUser,
                   isProfileCompleted: true,
                 });
                 Alert.alert('Success', 'User data updated successfully');
               } else {
-                // Jika userId belum ada, berarti pengguna menambahkan data baru
                 await addDoc(collection(db, 'users'), {
                   name: namaUser,
                   address: alamatUser,
-                  ktp: ktpUser,  // NIK field is not editable
+                  ktp: ktpUser,  
                   phone: phoneUser,
                   createdAt: serverTimestamp(),
                   email: userEmail,
@@ -144,7 +140,7 @@ export default function Pembayaran({ onAdd }) {
           <Text style={{ fontSize: 16, color: themeColors.text }}>Nomor KTP (NIK)</Text>
           <TextInput
             value={ktpUser}
-            editable={false}  // Prevent editing NIK
+            editable={false} 
             style={[inputStyle, { backgroundColor: themeColors.secondaryDisabled }]}
           />
 

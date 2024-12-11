@@ -12,5 +12,6 @@ export const themeColors = {
     border: '#9e9e9e', 
     greyBackground: '#f5f5f5', 
     error: '#dc3545',
+    blueblue: '#ADD8E6'
   };
   

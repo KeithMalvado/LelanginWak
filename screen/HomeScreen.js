@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { getFirestore, collection, getDocs, query, where, updateDoc, doc } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import { getAuth, sendEmailVerification, signOut, onAuthStateChanged } from 'firebase/auth';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -19,6 +19,42 @@ function HomeScreen() {
   const db = getFirestore();
   const auth = getAuth();
 
+  useEffect(() => {
+    // Daftarkan listener onAuthStateChanged
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // Cek apakah email sudah terverifikasi
+        if (user.emailVerified) {
+          console.log('Pengguna terverifikasi:', user.email);
+        } else {
+          // Kirim email verifikasi jika belum terverifikasi
+          sendEmailVerification(user).then(() => {
+            Alert.alert(
+              'Verifikasi Email',
+              'Silakan verifikasi email Anda. Kami telah mengirimkan email verifikasi.'
+            );
+          }).catch((error) => {
+            console.log('Error mengirimkan email verifikasi:', error);
+          });
+
+          // Pengguna belum memverifikasi email
+          Alert.alert(
+            'Verifikasi Email',
+            'Silakan verifikasi email Anda terlebih dahulu.'
+          );
+          signOut(auth);
+          navigation.replace('Login');
+        }
+      } else {
+        // Jika tidak ada user yang login, arahkan ke Login
+        navigation.replace('Login');
+      }
+    });
+
+    // Pastikan untuk membersihkan listener saat komponen di-unmount
+    return () => unsubscribe();
+  }, [navigation]);
+
   const fetchUserData = async () => {
     const user = auth.currentUser;
     if (user) {
@@ -30,7 +66,7 @@ function HomeScreen() {
         setIsProfileCompleted(userDoc.isProfileCompleted);  
       }
     }
-  };  
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -39,7 +75,7 @@ function HomeScreen() {
   );
 
   const handleFeatureNavigation = (feature) => {
-    if (isProfileCompleted === false) {
+    if (!isProfileCompleted) {
       Alert.alert(
         'Lengkapi Data Diri',
         'Harap isi semua informasi sebelum menggunakan fitur ini.',
@@ -50,10 +86,10 @@ function HomeScreen() {
           },
         ]
       );
-      return;
+      return; 
     }
     navigation.navigate(feature);
-  };  
+  };
 
   const handleSaveProfile = async (newData) => {
     const user = auth.currentUser;
@@ -64,7 +100,7 @@ function HomeScreen() {
       setIsProfileCompleted(true); 
       Alert.alert('Data berhasil disimpan');
     }
-  };  
+  };
 
   return (
     <View style={styles.container}>

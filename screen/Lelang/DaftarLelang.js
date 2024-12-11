@@ -1,19 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  ActivityIndicator,
-  SafeAreaView,
-  Alert,
-  StyleSheet,
-} from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, SafeAreaView, Alert, StyleSheet } from 'react-native';
 import { ref, onValue } from 'firebase/database';
 import { getAuth } from 'firebase/auth';
-import { realtimeDb } from '../../screen/firebase/index';
+import { realtimeDb } from '../../screen/firebase';
 import { themeColors } from '../../theme/theme';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import axios from 'axios';
 
 const normalizeString = (str) => str?.trim()?.toLowerCase();
 
@@ -59,7 +51,7 @@ const DaftarLelang = ({ navigation }) => {
         Alert.alert('Lelang Ditutup', 'Anda bukan pemenang lelang ini.');
       }
     } else {
-      navigation.navigate('IkutLelang', { barangId: item.id });
+      navigation.navigate('ikutlelang', { barangId: item.id });
     }
   };
 
@@ -89,9 +81,6 @@ const DaftarLelang = ({ navigation }) => {
             <Text style={styles.cardText}>Harga Maksimum: {item.hargaTertinggi}</Text>
             <Text style={styles.cardText}>
               Status: {item.status === 'selesai' ? 'Lelang Selesai' : 'Lelang Berlangsung'}
-            </Text>
-            <Text style={styles.cardText}>
-              Pemenang: {item.status === 'selesai' ? item.winner || 'Belum Ada' : 'Belum Ada'}
             </Text>
 
             <TouchableOpacity

@@ -1,22 +1,31 @@
 import React, { useState } from 'react';
-import { Text, TextInput, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
+import { Text, TextInput, TouchableOpacity, SafeAreaView, Alert, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { auth } from '../screen/firebase/index';
 import { getFirestore, doc, setDoc } from 'firebase/firestore';
 import { themeColors } from '../theme/theme';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const Registrasi = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const navigation = useNavigation();
   const db = getFirestore();
 
   const handleSignUp = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Email dan password wajib diisi.');
+    if (!email || !password || !confirmPassword) {
+      Alert.alert('Error', 'Semua field wajib diisi.');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert('Error', 'Password dan Konfirmasi Password tidak sama.');
       return;
     }
 
@@ -33,12 +42,12 @@ const Registrasi = () => {
 
       await setDoc(doc(db, 'users', user.uid), {
         email: user.email,
-        role: 'user', 
+        role: 'user',
       });
 
       await sendEmailVerification(user);
       Alert.alert('Sukses', 'Akun berhasil dibuat. Silakan verifikasi email Anda.');
-      navigation.navigate('Login'); 
+      navigation.navigate('Login');
     } catch (error) {
       Alert.alert('Error', error.message);
     } finally {
@@ -47,10 +56,26 @@ const Registrasi = () => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg, justifyContent: 'center', paddingHorizontal: 20 }}>
-      <Text style={{ fontSize: 24, fontWeight: 'bold', color: themeColors.textSecondary, marginBottom: 20, textAlign: 'center' }}>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: themeColors.bg,
+        justifyContent: 'center',
+        paddingHorizontal: 20,
+      }}
+    >
+      <Text
+        style={{
+          fontSize: 24,
+          fontWeight: 'bold',
+          color: themeColors.textSecondary,
+          marginBottom: 20,
+          textAlign: 'center',
+        }}
+      >
         Halaman Registrasi
       </Text>
+      <Text style={{ marginBottom: 8, color: themeColors.textSecondary }}>Email</Text>
       <TextInput
         style={{
           padding: 16,
@@ -64,19 +89,66 @@ const Registrasi = () => {
         value={email}
         onChangeText={setEmail}
       />
-      <TextInput
+      <Text style={{ marginBottom: 8, color: themeColors.textSecondary }}>Password</Text>
+      <View
         style={{
-          padding: 16,
+          flexDirection: 'row',
+          alignItems: 'center',
           backgroundColor: themeColors.secondary,
-          color: themeColors.textSecondary,
           borderRadius: 16,
           marginBottom: 12,
+          paddingHorizontal: 16,
         }}
-        placeholder="Masukan Password"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
+      >
+        <TextInput
+          style={{
+            flex: 1,
+            paddingVertical: 16,
+            color: themeColors.textSecondary,
+          }}
+          placeholder="Masukan Password"
+          secureTextEntry={!showPassword}
+          value={password}
+          onChangeText={setPassword}
+        />
+        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+          <Ionicons
+            name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+            size={24}
+            color={themeColors.textSecondary}
+          />
+        </TouchableOpacity>
+      </View>
+      <Text style={{ marginBottom: 8, color: themeColors.textSecondary }}>Konfirmasi Password</Text>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          backgroundColor: themeColors.secondary,
+          borderRadius: 16,
+          marginBottom: 12,
+          paddingHorizontal: 16,
+        }}
+      >
+        <TextInput
+          style={{
+            flex: 1,
+            paddingVertical: 16,
+            color: themeColors.textSecondary,
+          }}
+          placeholder="Konfirmasi Password"
+          secureTextEntry={!showConfirmPassword}
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+        />
+        <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+          <Ionicons
+            name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
+            size={24}
+            color={themeColors.textSecondary}
+          />
+        </TouchableOpacity>
+      </View>
       <TouchableOpacity
         style={{
           paddingVertical: 16,
