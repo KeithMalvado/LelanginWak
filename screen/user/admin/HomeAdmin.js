@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, SafeAreaView, TouchableOpacity, Image, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { getFirestore, collection, getDocs } from 'firebase/firestore';
-import { themeColors } from '../../../theme/theme'; // Assuming you have themeColors for consistency
 
 export default function HomeAdmin() {
   const navigation = useNavigation(); 

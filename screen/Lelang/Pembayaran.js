@@ -1,196 +1,292 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, Alert, SafeAreaView, StyleSheet } from "react-native";
-import { ref, get } from "firebase/database";
-import { realtimeDb } from "../../screen/firebase/index";
-import { themeColors } from "../../theme/theme";
-import { StripeProvider, useStripe } from '@stripe/stripe-react-native';
-import { getAuth } from "firebase/auth";
+// import React, { useState, useEffect } from 'react';
+// import { View, Text, Button, Alert, ActivityIndicator } from 'react-native';
+// import { ref, get } from 'firebase/database';
+// import { StripeProvider, initPaymentSheet, presentPaymentSheet } from '@stripe/stripe-react-native';
+// import { realtimeDb } from "../../screen/firebase/index"; 
+
+// const publishableKey = 'pk_test_51QUWjzDRTy3ktVhtVi64IwTAoarI8FKJcoDssiwRpz51r5foXiqF7bhYuB7D8UPmxdpIP9ZLpjtotOszxpQSrg7J002e2wDa68'; 
+
+// const Pembayaran = ({ route }) => {
+//   const { barangId } = route.params; 
+//   const [hargaSaatIni, setHargaSaatIni] = useState(null);
+//   const [loading, setLoading] = useState(true);
+
+//   useEffect(() => {
+//     const fetchHargaBarang = async () => {
+//       try {
+//         const barangRef = ref(realtimeDb, `barang/${barangId}`);
+//         const snapshot = await get(barangRef);
+//         if (snapshot.exists()) {
+//           const barangData = snapshot.val();
+//           setHargaSaatIni(barangData.hargaSaatIni); 
+//         } else {
+//           Alert.alert("Error", "Barang tidak ditemukan.");
+//         }
+//       } catch (error) {
+//         console.error("Error fetching harga barang: ", error);
+//         Alert.alert("Error", "Terjadi kesalahan saat mengambil data barang.");
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     fetchHargaBarang();
+//   }, [barangId]);
+
+//   const handlePembayaran = async () => {
+//     if (!hargaSaatIni || isNaN(hargaSaatIni) || hargaSaatIni <= 0) {
+//       Alert.alert("Warning", "Harga barang tidak valid.");
+//       return;
+//     }
+
+//     try {
+//       const response = await fetch('https://13e9-66-96-225-185.ngrok-free.app/create-payment-intent', {
+//         method: 'POST',
+//         headers: {
+//           'Content-Type': 'application/json',
+//         },
+//         body: JSON.stringify({
+//           amount: Math.round(hargaSaatIni * 100), 
+//           currency: 'idr',
+//           orderId: barangId,
+//         }),
+//       });
+
+//       if (!response.ok) {
+//         const errorText = await response.text();
+//         Alert.alert("Error", `Gagal membuat payment intent: ${errorText}`);
+//         return;
+//       }
+
+//       const { clientSecret } = await response.json();
+
+//       if (!clientSecret) {
+//         Alert.alert("Error", "Gagal mendapatkan clientSecret.");
+//         return;
+//       }
+
+//       const { error: initError } = await initPaymentSheet({
+//         paymentIntentClientSecret: clientSecret,
+//         merchantDisplayName: 'Nama Toko Anda',
+//       });
+
+//       if (initError) {
+//         console.error("Error inisialisasi pembayaran:", initError);
+//         Alert.alert("Error", "Gagal menginisialisasi pembayaran.");
+//         return;
+//       }
+
+//       const { error: presentError } = await presentPaymentSheet();
+
+//       if (presentError) {
+//         console.error("Error saat menampilkan pembayaran:", presentError);
+//         Alert.alert("Error", "Pembayaran gagal: " + presentError.message);
+//       } else {
+//         Alert.alert("Success", "Pembayaran berhasil!");
+//       }
+//     } catch (error) {
+//       console.error("Error saat memproses pembayaran:", error);
+//       Alert.alert("Error", "Terjadi kesalahan saat memproses pembayaran: " + error.message);
+//     }
+//   };
+
+//   if (loading) {
+//     return (
+//       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+//         <ActivityIndicator size="large" color="#0000ff" />
+//       </View>
+//     );
+//   }
+
+//   return (
+//     <StripeProvider publishableKey={publishableKey}>
+//       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+//         {hargaSaatIni ? (
+//           <>
+//             <Text>Harga Saat Ini: {hargaSaatIni}</Text>
+//             <Button title="Proses Pembayaran" onPress={handlePembayaran} />
+//           </>
+//         ) : (
+//           <Text>Harga tidak tersedia.</Text>
+//         )}
+//       </View>
+//     </StripeProvider>
+//   );
+// };
+
+// export default Pembayaran;
+
+import React, { useState, useEffect } from 'react';
+import { View, Text, SafeAreaView, TouchableOpacity, ActivityIndicator, StyleSheet, Alert } from 'react-native';
+import { ref, get } from 'firebase/database';
+import { StripeProvider, initPaymentSheet, presentPaymentSheet } from '@stripe/stripe-react-native';
+import { realtimeDb } from "../../screen/firebase/index"; 
+import { themeColors } from '../../theme/theme';
 
 const Pembayaran = ({ route }) => {
   const { barangId } = route.params;
-  console.log("barangId from route params:", barangId);
-
-  const getUserId = () => {
-    const auth = getAuth();
-    const user = auth.currentUser;
-    return user ? user.uid : null;
-  };
-
-  const [barang, setBarang] = useState(null);
-  const [isWinner, setIsWinner] = useState(false);
-  const { initPaymentSheet, presentPaymentSheet } = useStripe();
-  const userId = getUserId();
+  const [hargaSaatIni, setHargaSaatIni] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!userId) {
-      Alert.alert("Error", "User ID tidak ditemukan.");
-      console.log("User ID tidak ditemukan.");
-      return;
-    }
-
-    const fetchBarangDetail = async () => {
+    const fetchHargaBarang = async () => {
       try {
-        console.log("Fetching barang details for ID:", barangId);
         const barangRef = ref(realtimeDb, `barang/${barangId}`);
         const snapshot = await get(barangRef);
-
         if (snapshot.exists()) {
-          const data = snapshot.val();
-          console.log("Fetched barang data:", data);
-          setBarang(data);
-
-          if (data.winner === userId) {
-            setIsWinner(true);
-          }
+          const barangData = snapshot.val();
+          setHargaSaatIni(barangData.hargaSaatIni);
         } else {
           Alert.alert("Error", "Barang tidak ditemukan.");
-          console.log("Barang not found in database.");
         }
       } catch (error) {
-        console.error("Error fetching barang details: ", error);
+        console.error("Error fetching harga barang: ", error);
         Alert.alert("Error", "Terjadi kesalahan saat mengambil data barang.");
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchBarangDetail();
-  }, [barangId, userId]);
+    fetchHargaBarang();
+  }, [barangId]);
 
-  const handlePayment = async () => {
-    if (!barang || !barang.hargaSaatIni || isNaN(barang.hargaSaatIni)) {
-      Alert.alert("Error", "Harga barang tidak valid.");
-      console.log("Harga barang tidak valid:", barang ? barang.hargaSaatIni : "Data barang kosong");
+  const handlePembayaran = async () => {
+    if (!hargaSaatIni || isNaN(hargaSaatIni) || hargaSaatIni <= 0) {
+      Alert.alert("Warning", "Harga barang tidak valid.");
       return;
     }
-  
-    console.log("Harga barang yang akan digunakan:", barang.hargaSaatIni);
-  
+
     try {
-      console.log("Mengirim permintaan untuk membuat payment intent...");
-      const paymentIntentResponse = await fetch('https://a496-66-96-225-166.ngrok-free.app/create-payment-intent', {
+      const response = await fetch('https://13e9-66-96-225-185.ngrok-free.app/create-payment-intent', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          amount: Math.round(barang.hargaSaatIni * 100),
+          amount: Math.round(hargaSaatIni * 100),
           currency: 'idr',
           orderId: barangId,
-          productName: barang.namaBarang, 
-          productDescription: barang.deskripsi, 
         }),
       });
-      
-  
-      if (!paymentIntentResponse.ok) {
-        const errorText = await paymentIntentResponse.text();
-        console.error("Error dalam permintaan pembayaran:", paymentIntentResponse.status, errorText);
-        Alert.alert("Error", "Gagal membuat payment intent: " + errorText);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        Alert.alert("Error", `Gagal membuat payment intent: ${errorText}`);
         return;
       }
-  
-      const responseJson = await paymentIntentResponse.json();
-      console.log("Response dari server:", responseJson);
-  
-      const { clientSecret } = responseJson;
-  
+
+      const { clientSecret } = await response.json();
+
       if (!clientSecret) {
-        console.error("clientSecret tidak ditemukan dalam respons.");
         Alert.alert("Error", "Gagal mendapatkan clientSecret.");
         return;
       }
-  
-      const { error } = await initPaymentSheet({
+
+      const { error: initError } = await initPaymentSheet({
         paymentIntentClientSecret: clientSecret,
         merchantDisplayName: 'Nama Toko Anda',
-        customFlow: true,
       });
-  
-      if (error) {
-        console.error("Error in payment sheet initialization:", error);
+
+      if (initError) {
+        console.error("Error inisialisasi pembayaran:", initError);
         Alert.alert("Error", "Gagal menginisialisasi pembayaran.");
         return;
       }
-  
+
       const { error: presentError } = await presentPaymentSheet();
-  
+
       if (presentError) {
-        console.error("Pembayaran gagal:", presentError);
-        Alert.alert("Error", "Pembayaran gagal.");
+        console.error("Error saat menampilkan pembayaran:", presentError);
+        Alert.alert("Error", "Pembayaran gagal: " + presentError.message);
       } else {
         Alert.alert("Success", "Pembayaran berhasil!");
       }
     } catch (error) {
-      console.error("Payment error:", error);
-      Alert.alert("Error", "Terjadi kesalahan saat memproses pembayaran.");
+      console.error("Error saat memproses pembayaran:", error);
+      Alert.alert("Error", "Terjadi kesalahan saat memproses pembayaran: " + error.message);
     }
   };
-  
-  
 
-  if (!barang) {
-    return <Text>Loading...</Text>;
+  if (loading) {
+    return (
+      <StripeProvider publishableKey="pk_test_51QUWjzDRTy3ktVhtVi64IwTAoarI8FKJcoDssiwRpz51r5foXiqF7bhYuB7D8UPmxdpIP9ZLpjtotOszxpQSrg7J002e2wDa68">
+        <SafeAreaView style={styles.container}>
+          <ActivityIndicator size="large" color="#4CAF50" />
+        </SafeAreaView>
+      </StripeProvider>
+    );
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg, justifyContent: 'center', paddingHorizontal: 20 }}>
-      <Text style={{ fontSize: 24, fontWeight: 'bold', color: themeColors.text, marginBottom: 20, textAlign: 'center' }}>
-        Pembayaran Lelang
-      </Text>
-
-      <View style={styles.detailsContainer}>
-        <Text style={styles.textTitle}>Nama Barang: {barang.namaBarang}</Text>
-        <Text style={styles.textSubTitle}>Harga Barang: {barang.hargaSaatIni}</Text>
-
-        {isWinner ? (
-          <TouchableOpacity
-            style={styles.button}
-            onPress={handlePayment}
-          >
-            <Text style={styles.buttonText}>Bayar Sekarang</Text>
-          </TouchableOpacity>
-        ) : (
-          <Text style={styles.nonWinnerText}>Anda belum menjadi pemenang.</Text>
-        )}
-      </View>
-    </SafeAreaView>
+    <StripeProvider publishableKey="pk_test_51QUWjzDRTy3ktVhtVi64IwTAoarI8FKJcoDssiwRpz51r5foXiqF7bhYuB7D8UPmxdpIP9ZLpjtotOszxpQSrg7J002e2wDa68">
+      <SafeAreaView style={styles.container}>
+        <View style={styles.card}>
+          {hargaSaatIni ? (
+            <>
+              <Text style={styles.title}>Total Pembayaran</Text>
+              <Text style={styles.price}>Rp {hargaSaatIni.toLocaleString('id-ID')}</Text>
+              <TouchableOpacity style={styles.button} onPress={handlePembayaran}>
+                <Text style={styles.buttonText}>Proses Pembayaran</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <Text style={styles.errorText}>Harga tidak tersedia.</Text>
+          )}
+        </View>
+      </SafeAreaView>
+    </StripeProvider>
   );
 };
 
 const styles = StyleSheet.create({
-  detailsContainer: {
-    backgroundColor: themeColors.secondary,
+  container: {
+    flex: 1,
+    backgroundColor: '#F4F4F9',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
     padding: 20,
     borderRadius: 16,
-    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
     elevation: 5,
+    width: '90%',
+    alignItems: 'center',
   },
-  textTitle: {
-    fontSize: 20,
+  title: {
+    fontSize: 24,
     fontWeight: 'bold',
-    color: themeColors.textSecondary,
-    marginBottom: 12,
+    color: '#333',
+    marginBottom: 8,
   },
-  textSubTitle: {
-    fontSize: 18,
-    color: themeColors.textSecondary,
-    marginBottom: 12,
+  price: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+    marginBottom: 16,
   },
   button: {
-    paddingVertical: 16,
-    backgroundColor: themeColors.button,
-    borderRadius: 16,
+    backgroundColor: themeColors.bg,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
     alignItems: 'center',
+    width: '100%',
+    marginTop: 16,
   },
   buttonText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: themeColors.textSecondary,
+    color: '#FFFFFF',
   },
-  nonWinnerText: {
-    fontSize: 16,
-    color: themeColors.textSecondary,
+  errorText: {
+    fontSize: 18,
+    color: '#FF0000',
     textAlign: 'center',
-    marginTop: 20,
   },
 });
 

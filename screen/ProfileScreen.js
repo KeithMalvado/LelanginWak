@@ -14,7 +14,6 @@ export default function ProfileScreen() {
   const [userData, setUserData] = useState(null);
   const [isProfileCompleted, setIsProfileCompleted] = useState(false);
 
-  // Ambil data pengguna saat ini dari Firestore
   const fetchUserData = async () => {
     const user = auth.currentUser;
     if (user) {
@@ -23,7 +22,7 @@ export default function ProfileScreen() {
       if (docSnap.exists()) {
         const userDoc = docSnap.data();
         setUserData(userDoc);
-        setIsProfileCompleted(userDoc.isProfileCompleted);  // Memastikan status profil terupdate
+        setIsProfileCompleted(userDoc.isProfileCompleted);  
       }
     }
   };
@@ -37,7 +36,7 @@ export default function ProfileScreen() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      navigation.replace('Login');  // Arahkan ke halaman login setelah logout
+      navigation.replace('Login');  
     } catch (error) {
       Alert.alert('Error', 'Terjadi kesalahan saat logout');
     }
@@ -51,12 +50,12 @@ export default function ProfileScreen() {
         [
           {
             text: 'OK',
-            onPress: () => navigation.navigate('DataUser'),  // Arahkan ke halaman pengisian data diri
+            onPress: () => navigation.navigate('DataUser'),  
           },
         ]
       );
     } else {
-      navigation.navigate('EditUser');  // Halaman untuk mengedit profil
+      navigation.navigate('EditUser');  
     }
   };
 
@@ -74,22 +73,16 @@ export default function ProfileScreen() {
           </Text>
         </View>
       </View>
-
-      {/* Status kelengkapan profil */}
       <View style={styles.profileStatus}>
         <Text style={styles.statusText}>
           {isProfileCompleted ? 'Profil Anda sudah lengkap' : 'Profil Anda belum lengkap'}
         </Text>
       </View>
-
-      {/* Tombol untuk edit profil */}
       <TouchableOpacity style={styles.editButton} onPress={handleEditProfile}>
         <Text style={styles.editButtonText}>
           {isProfileCompleted ? 'Edit Profil' : 'Lengkapi Profil'}
         </Text>
       </TouchableOpacity>
-
-      {/* Tombol logout */}
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.logoutText}>Log Out</Text>
       </TouchableOpacity><View style={styles.bottomNav}>

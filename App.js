@@ -102,7 +102,6 @@
 //   );
 // }
 
-
 import React, { useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -122,7 +121,7 @@ import DaftarBarang from "./screen/Lelang/DaftarLelang";
 import DetailLelang from "./screen/Lelang/DetailBarang";
 import IkutLelang from "./screen/Lelang/ikutlelang";
 import ProfileScreen from "./screen/ProfileScreen";
-import RiwayatLelang from "./screen/Lelang/RiwayatLelang"
+import RiwayatLelang from "./screen/Lelang/RiwayatLelang";
 import { StripeProvider } from '@stripe/stripe-react-native';
 
 const Stack = createNativeStackNavigator();
@@ -130,7 +129,6 @@ const Stack = createNativeStackNavigator();
 export default function App() {
   const [barang, setBarang] = useState([]);
   const [selectedBarang, setSelectedBarang] = useState(null);
-
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
 
@@ -161,43 +159,45 @@ export default function App() {
   };
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName="Login"
-        screenOptions={{ headerShown: false }}
-      >
-        <Stack.Screen name="Pembayaran" component={Pembayaran}/>
-        <Stack.Screen name="RiwayatLelang" component={RiwayatLelang}/>
-        <Stack.Screen name="DetailBarang" component={DetailLelang}/>
-        <Stack.Screen name="DaftarBarang" component={DaftarBarang}/>
-        <Stack.Screen name="HomeAdmin" component={HomeAdmin}/>
-        <Stack.Screen name="Welcome" component={WelcomeScreen} />
-        <Stack.Screen name="HCpetugas" component={PetugasNavigator} />
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Signup" component={SignUpScreen} />
-        <Stack.Screen name="DataUser" component={ScreenDataUser} />
-        <Stack.Screen name="Home">
-          {(props) => <HomeScreen {...props} />}
-        </Stack.Screen>
-        <Stack.Screen name="Profile" component={ProfileScreen}/>
-        <Stack.Screen name="TambahBarang">
-          {(props) => <TambahBarang {...props} onAdd={handleAddBarang} />}
-        </Stack.Screen>
-        <Stack.Screen name="EditUser">
-          {(props) => (
-            <EditUser
-              {...props}
-              user={selectedUser}
-              onSave={handleUpdateUser}
-            />
-          )}
-        </Stack.Screen>
-        <Stack.Screen name="DataDiri">
-          {(props) => <ScreenDataUser {...props} />}
-        </Stack.Screen>
-        <Stack.Screen name="ikutlelang" component={IkutLelang}/>
-        <Stack.Screen name="DetailLelang" component={DetailLelang}/>
-      </Stack.Navigator>
-    </NavigationContainer>
+    <StripeProvider publishableKey="pk_test_51QUWjzDRTy3ktVhtpWMH5dkA59NSckfxQE6FaiA934SdluctpeHpSfCqqzQt3W0tVp6CM8Yxgc7q09y1LUINkrPM00gmDmCSiX">
+      <NavigationContainer>
+        <Stack.Navigator
+          initialRouteName="Login"
+          screenOptions={{ headerShown: false }}
+        >
+          <Stack.Screen name="Pembayaran" component={Pembayaran} />
+          <Stack.Screen name="RiwayatLelang" component={RiwayatLelang} />
+          <Stack.Screen name="DetailBarang" component={DetailLelang} />
+          <Stack.Screen name="DaftarBarang" component={DaftarBarang} />
+          <Stack.Screen name="HomeAdmin" component={HomeAdmin} />
+          <Stack.Screen name="Welcome" component={WelcomeScreen} />
+          <Stack.Screen name="HCpetugas" component={PetugasNavigator} />
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Signup" component={SignUpScreen} />
+          <Stack.Screen name="DataUser" component={ScreenDataUser} />
+          <Stack.Screen name="Home">
+            {(props) => <HomeScreen {...props} />}
+          </Stack.Screen>
+          <Stack.Screen name="Profile" component={ProfileScreen} />
+          <Stack.Screen name="TambahBarang">
+            {(props) => <TambahBarang {...props} onAdd={handleAddBarang} />}
+          </Stack.Screen>
+          <Stack.Screen name="EditUser">
+            {(props) => (
+              <EditUser
+                {...props}
+                user={selectedUser}
+                onSave={handleUpdateUser}
+              />
+            )}
+          </Stack.Screen>
+          <Stack.Screen name="DataDiri">
+            {(props) => <ScreenDataUser {...props} />}
+          </Stack.Screen>
+          <Stack.Screen name="ikutlelang" component={IkutLelang} />
+          <Stack.Screen name="DetailLelang" component={DetailLelang} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </StripeProvider>
   );
 }

@@ -5,7 +5,6 @@ import { getAuth } from 'firebase/auth';
 import { realtimeDb } from '../../screen/firebase';
 import { themeColors } from '../../theme/theme';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import axios from 'axios';
 
 const normalizeString = (str) => str?.trim()?.toLowerCase();
 
